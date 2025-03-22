@@ -1,85 +1,128 @@
-# AI News Summariser
+# AI News Summarizer
 
 ## Documentation
 
 ### Project Setup
 
-#### Prerequisites
-Ensure you have Python 3.7+ installed on your system. You also need the following dependencies:
-```sh
-pip install streamlit requests beautifulsoup4 gtts python-dotenv google-generativeai
-```
+#### Prerequisites:
+Ensure you have Python 3.8+ installed.
 
-### Environment Variables
-Create a `.env` file in the project root and add the following keys:
-```
-GEMINIAPI_KEY=your_google_genai_api_key
-NEWS_KEY=your_newsapi_key
-```
+#### Installation Steps:
 
-### Running the Application
-Start the Streamlit application using:
-```sh
-streamlit run app.py
-```
+1. Clone the repository:
+   ```sh
+   git clone <repository_url>
+   cd company-news-analyzer
+   ```
+
+2. Create and activate a virtual environment:
+   ```sh
+   python -m venv venv
+   source venv/bin/activate  # On Windows use `venv\Scripts\activate`
+   ```
+
+3. Install required dependencies:
+   ```sh
+   pip install -r requirements.txt
+   ```
+
+4. Create a `.env` file and add the API keys:
+   ```sh
+   GEMINIAPI_KEY=<your_google_gemini_api_key>
+   NEWS_KEY=<your_newsapi_key>
+   ```
+
+5. Run the application:
+   ```sh
+   streamlit run app.py
+   ```
+
+---
 
 ## Model Details
 
-### Summarization
-The application uses **Google Gemini AI (gemini-2.0-flash)** to generate summaries of news articles. It extracts relevant information and provides structured insights. 
+The application utilizes the following models:
 
-### Sentiment Analysis
-The same Google Gemini AI model analyzes the sentiment of articles as **Positive, Negative, or Neutral**, providing a sentiment breakdown for each article and an overall sentiment summary. 
+- **Summarization Model:** Google Gemini AI generates summaries of the scraped news articles.
+- **Sentiment Analysis Model:** Google Gemini AI analyzes the sentiment of news articles, categorizing them as positive, negative, or neutral.
+- **Text-to-Speech (TTS) Model:** Google Text-to-Speech (gTTS) converts Hindi summaries into audio output.
 
-### Text-to-Speech (TTS)
-The **Google Text-to-Speech (gTTS)** library converts the Hindi-translated summary into an audio file that users can play directly from the Streamlit interface.
+---
+
+## Web Scraping Process
+
+The application scrapes news articles using the following approach:
+
+1. **Fetching HTML Content:** The `scrape_webpage` function sends an HTTP request to the news article URL and retrieves the HTML content.
+2. **Parsing the Content:** BeautifulSoup is used to parse the HTML and extract the main article text, removing unnecessary elements like ads and navigation menus.
+3. **Cleaning the Text:** The extracted text is cleaned by removing excessive whitespace, special characters, and non-relevant sections.
+4. **Passing to AI Model:** The cleaned article text is then sent to Google Gemini AI for summarization and sentiment analysis.
+
+---
 
 ## API Development
 
-### Fetching News Articles
-The application fetches news articles using **NewsAPI** ([newsapi.org](https://newsapi.org/v2/everything)) with search queries based on the company name.
+- **News Retrieval API:** The `get_company_news` function queries the NewsAPI to fetch the latest news articles related to a given company.
+- **Web Scraping API:** The `scrape_webpage` function extracts the main text content from news articles using BeautifulSoup.
+- **Analysis API:** The `analyze_news` function sends the extracted news content to Google Gemini AI for summarization and sentiment analysis.
+- **Translation API:** The `translate_to_hindi` function translates the analysis results into Hindi.
+- **Text-to-Speech API:** The `get_audio_data` function converts the Hindi summary into an audio file using gTTS.
 
-- **Method:** `GET`
-- **Parameters:**
-  - `pageSize`: Number of articles to retrieve
-  - `q`: Company name
-  - `apiKey`: API key from environment variables
-  - `sortBy`: Relevancy
+---
 
-### Web Scraping
-To extract full article content, the application scrapes web pages using **BeautifulSoup**. It searches common HTML tags like `<article>`, `<main>`, and `<p>` to extract readable content.
+## Deployment
 
-### Google Gemini AI Integration
-The **Google Generative AI API** processes the scraped content to:
-1. Generate a structured summary.
-2. Perform sentiment analysis.
-3. Provide keyword extraction and comparative analysis.
+The API is deployed using a Docker container on Hugging Face Spaces.
 
-### Hindi Translation & TTS
-The English summary is translated to Hindi using the **Gemini AI API**. Then, the translated text is processed through **gTTS** for audio generation.
+---
+
+## Accessing APIs via Postman
+
+- **News Retrieval API:**
+  ```http
+  GET https://newsapi.org/v2/everything?q=Apple&apiKey=<NEWS_KEY>
+  ```
+
+- **Web Scraping API:**
+  ```http
+  GET http://localhost:8501/scrape?url=<news_article_url>
+  ```
+
+- **Analysis API (Handled within the application workflow):**
+  ```http
+  POST http://localhost:8501/analyze
+  ```
+
+- **Translation API:**
+  ```http
+  POST http://localhost:8501/translate
+  ```
+
+- **Text-to-Speech API:**
+  ```http
+  GET http://localhost:8501/text-to-speech
+  ```
+
+---
 
 ## API Usage
 
-### Third-Party APIs Used
-1. **NewsAPI**: Fetches news articles about a given company.
-2. **Google Gemini AI**: Processes summarization, sentiment analysis, and translation.
-3. **gTTS (Google Text-to-Speech)**: Converts Hindi-translated summaries into speech.
+- **NewsAPI:** Used to fetch the latest company news articles.
+- **Google Gemini AI:** Used for summarization and sentiment analysis.
+- **gTTS (Google Text-to-Speech):** Used for generating Hindi audio summaries.
 
-### Integration Details
-- **NewsAPI**: Integrated via HTTP requests with API key authentication.
-- **Google Gemini AI**: Requires API key authentication for AI-powered processing.
-- **gTTS**: Operates locally and does not require an external API key.
+---
 
 ## Assumptions & Limitations
 
-### Assumptions
-1. News articles retrieved from NewsAPI contain valid and relevant content.
-2. Google Gemini AI provides accurate and meaningful analysis.
-3. Users have a stable internet connection to interact with APIs.
+### Assumptions:
+- The Google Gemini AI key is valid and has sufficient quota.
+- NewsAPI provides reliable and up-to-date articles.
+- Web scraping is permitted by the respective news websites.
 
-### Limitations
-1. **Google Gemini API Dependency**: If the API is unavailable, summarization and sentiment analysis will not work.
-2. **NewsAPI Free Tier Limitations**: The free version has request limits and may not always return the latest articles.
-3. **Web Scraping Restrictions**: Some websites may block automated scraping, leading to missing content.
-4. **Hindi Translation Accuracy**: AI-generated translations may not always be perfectly natural or contextually accurate.
-5. **TTS Quality**: The gTTS library may not support all Hindi phonetics and pronunciations perfectly.
+### Limitations:
+- The free tier of NewsAPI has request limits.
+- Google Gemini AI requires API key-based authentication.
+- The summarization and sentiment analysis depend on the accuracy of the AI model.
+- gTTS may not handle long summaries efficiently.
+- Web scraping may fail if the article structure varies significantly.
