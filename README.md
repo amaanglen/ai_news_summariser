@@ -12,7 +12,7 @@ Ensure you have Python 3.8+ installed.
 1. Clone the repository:
    ```sh
    git clone <repository_url>
-   cd company-news-analyzer
+   cd ai_news_summariser
    ```
 
 2. Create and activate a virtual environment:
